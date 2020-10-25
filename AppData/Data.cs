@@ -4,9 +4,10 @@ using System.Text;
 
 namespace Sudoku_engine.AppData
 {
-    static class Data
+    public static class Data
     {
         public const int MinValue = 1;
         public const int MaxValue = 9;
+        public const int Section = 3;
     }
 }

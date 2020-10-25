@@ -4,9 +4,9 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 
-namespace Sudoku_engine.Element
+namespace Sudoku_engine.Sudoku
 {
-    class SudokuElement
+    public class SudokuElement
     {
         public int Number { get; set; } = 0;
         public List<int> Candidates { get; set; } = new List<int> {1, 2, 3, 4, 5, 6, 7, 8, 9};
