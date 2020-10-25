@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Sudoku_engine.AppData;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -8,7 +9,7 @@ namespace Sudoku_engine.Sudoku
 {
     public class SudokuElement
     {
-        public int Number { get; set; } = 0;
+        public int Number { get; set; } = Data.Empty;
         public List<int> Candidates { get; set; } = new List<int> {1, 2, 3, 4, 5, 6, 7, 8, 9};
         public Color FontColor { get; set; } = Color.Black;
 
@@ -46,7 +47,7 @@ namespace Sudoku_engine.Sudoku
 
         public override string ToString()
         {
-            StringBuilder result = new StringBuilder();
+            var result = new StringBuilder();
             result.Append("SudokuElement : [Number=");
             result.Append(Number);
             result.Append("; Candidates={");

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Sudoku_engine.Sudoku
 {
-    public class Position : IComparable<Position>, IEqualityComparer<Position>
+    public class Position : IComparable<Position>
     {
         public int Row { get; }
         public int Column { get; }
@@ -29,14 +29,16 @@ namespace Sudoku_engine.Sudoku
                 return this.Row.CompareTo(other.Row);
         }
 
-        public bool Equals(Position x, Position y)
+        public override bool Equals(object obj)
         {
-            return x.Row == y.Row && x.Column == y.Column;
+            return obj is Position position &&
+                   Row == position.Row &&
+                   Column == position.Column;
         }
 
-        public int GetHashCode(Position obj)
+        public override int GetHashCode()
         {
-            return HashCode.Combine(obj.Row, obj.Column);
+            return HashCode.Combine(Row, Column);
         }
     }
 }

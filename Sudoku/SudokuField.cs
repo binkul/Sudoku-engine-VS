@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Data.Common;
 using System.Drawing;
 using System.Text;
 
@@ -10,11 +11,16 @@ namespace Sudoku_engine.Sudoku
 {
     public class SudokuField
     {
-        private readonly OrderedDictionary Field;
+        public OrderedDictionary Field { get; }
 
         public SudokuField()
         {
             Field = Generate();
+        }
+
+        public SudokuField(OrderedDictionary field)
+        {
+            Field = field;
         }
 
         private OrderedDictionary Generate()
@@ -24,7 +30,7 @@ namespace Sudoku_engine.Sudoku
             {
                 for (var column = Data.MinValue; column <= Data.MaxValue; column++)
                 {
-                    Position position = new Position(row, column);
+                    var position = new Position(row, column);
                     result.Add(position, new SudokuElement());
                 }
             }
@@ -33,8 +39,9 @@ namespace Sudoku_engine.Sudoku
 
         public SudokuElement GetSudokuElement(int row, int column)
         {
-            Position position = new Position(row, column);
-            return (SudokuElement)Field[position];
+            var position = new Position(row, column);
+            var sudokuElement = (SudokuElement)Field[position];
+            return sudokuElement;
         }
 
         public int GetNumber(int row, int column) => GetSudokuElement(row, column).Number;
@@ -47,14 +54,18 @@ namespace Sudoku_engine.Sudoku
 
         public List<int> GetCandidates(int row, int column) => GetSudokuElement(row, column).Candidates;
 
+        public bool IsOnlyOneCandidate(int row, int column) => GetSudokuElement(row, column).IsOnlyOneCandidate();
+
+        public int GetFirstCandidate(int row, int column) => GetSudokuElement(row, column).GetFirstCandidate();
+
         public bool RemoveCandidte(int row, int column, int value) => GetSudokuElement(row, column).RemoveCandidate(value);
 
         public OrderedDictionary GetRow(int row)
         {
-            OrderedDictionary result = new OrderedDictionary();
+            var result = new OrderedDictionary();
             foreach(DictionaryEntry entry in Field)
             {
-                Position pos = (Position)entry.Key;
+                var pos = (Position)entry.Key;
                 if (pos.Row == row)
                 {
                     result.Add(entry.Key, entry.Value);
@@ -62,23 +73,13 @@ namespace Sudoku_engine.Sudoku
             }
             return result;
         }
-        //public List<SudokuElement> GetRow(int row)
-        //{
-        //    List<SudokuElement> result = new List<SudokuElement>();
-        //    for (var column = Data.MinValue; column <= Data.MaxValue; column++)
-        //    {
-        //        Position position = new Position(row, column);
-        //        result.Add((SudokuElement)Field[position]);
-        //    }
-        //    return result;
-        //}
 
         public OrderedDictionary GetColumn(int column)
         {
-            OrderedDictionary result = new OrderedDictionary();
+            var result = new OrderedDictionary();
             foreach (DictionaryEntry entry in Field)
             {
-                Position pos = (Position)entry.Key;
+                var pos = (Position)entry.Key;
                 if (pos.Column == column)
                 {
                     result.Add(entry.Key, entry.Value);
@@ -86,26 +87,16 @@ namespace Sudoku_engine.Sudoku
             }
             return result;
         }
-        //public List<SudokuElement> GetColumn(int column)
-        //{
-        //    List<SudokuElement> result = new List<SudokuElement>();
-        //    for (var row = Data.MinValue; row <= Data.MaxValue; row++)
-        //    {
-        //        Position position = new Position(row, column);
-        //        result.Add((SudokuElement)Field[position]);
-        //    }
-        //    return result;
-        //}
 
         public OrderedDictionary GetSection(int row, int column)
         {
             OrderedDictionary result = new OrderedDictionary();
-            int startRow = ((row - 1) / Data.Section) * Data.Section + 1;
-            int startCol = ((column - 1) / Data.Section) * Data.Section + 1;
+            var startRow = ((row - 1) / Data.Section) * Data.Section + 1;
+            var startCol = ((column - 1) / Data.Section) * Data.Section + 1;
 
             foreach(DictionaryEntry entry in Field)
             {
-                Position pos = (Position)entry.Key;
+                var pos = (Position)entry.Key;
                 if (pos.Row >= startRow && pos.Row < (startRow + Data.Section)
                     && pos.Column >= startCol && pos.Column < (startCol + Data.Section))
                 {
@@ -114,26 +105,10 @@ namespace Sudoku_engine.Sudoku
             }
             return result;
         }
-        //public List<SudokuElement> GetSection(int row, int column)
-        //{
-        //    List<SudokuElement> result = new List<SudokuElement>();
-        //    int startRow = ((row - 1) / Data.Section) * Data.Section + 1;
-        //    int startCol = ((column - 1) / Data.Section) * Data.Section + 1;
-
-        //    for (var i = startRow; i < startRow + Data.Section; i++)
-        //    {
-        //        for (var j = startCol; j < startCol + Data.Section; j++)
-        //        {
-        //            Position position = new Position(i, j);
-        //            result.Add((SudokuElement)Field[position]);
-        //        }
-        //    }
-        //    return result;
-        //}
 
         public OrderedDictionary GetSudokuSection(int row, int column)
         {
-            OrderedDictionary result = GetRow(row);
+            var result = GetRow(row);
 
             foreach (DictionaryEntry entry in GetColumn(column))
             {
@@ -151,6 +126,44 @@ namespace Sudoku_engine.Sudoku
                 }
             }
             return result;
+        }
+
+        public SudokuField DeepCopy()
+        {
+            var fieldCopy = new OrderedDictionary();
+            foreach(DictionaryEntry entry in Field)
+            {
+                var positionOrg = (Position)entry.Key;
+                var sudokuElementOrg = (SudokuElement)entry.Value;
+               
+                var positionCopy = new Position(positionOrg.Row, positionOrg.Column);
+                var sudokuElementCopy = new SudokuElement(sudokuElementOrg.Number, 
+                    new List<int>(sudokuElementOrg.Candidates), 
+                    sudokuElementOrg.FontColor);
+
+                fieldCopy.Add(positionCopy, sudokuElementCopy);
+            }
+            return new SudokuField(fieldCopy);
+        }
+
+        public override string ToString()
+        {
+            var result = new StringBuilder();
+            for (var i = 0; i < Data.MaxValue; i++)
+            {
+               result.Append("|");
+               for (var j = 0; j < Data.MaxValue; j++)
+                {
+                    var sudokuElement = (SudokuElement)Field[i * Data.MaxValue + j];
+                    if (sudokuElement.Number != Data.Empty)
+                        result.Append(sudokuElement.Number);
+                    else
+                        result.Append(" ");
+                    result.Append("|");
+                }
+                result.Append("\n");
+            }
+            return result.ToString();
         }
     }
 }
