@@ -1,5 +1,6 @@
 ﻿using Sudoku_engine.Sudoku;
 using System;
+using System.Collections.Generic;
 
 namespace Sudoku_engine
 {

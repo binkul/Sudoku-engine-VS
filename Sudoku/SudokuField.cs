@@ -1,4 +1,5 @@
 ﻿using Sudoku_engine.AppData;
+using System.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -6,26 +7,27 @@ using System.Collections.Specialized;
 using System.Data.Common;
 using System.Drawing;
 using System.Text;
+using System.Collections.Immutable;
 
 namespace Sudoku_engine.Sudoku
 {
     public class SudokuField
     {
-        public OrderedDictionary Field { get; }
+        public SortedDictionary<Position, SudokuElement> Field { get; }
 
         public SudokuField()
         {
             Field = Generate();
         }
 
-        public SudokuField(OrderedDictionary field)
+        public SudokuField(SortedDictionary<Position, SudokuElement> field)
         {
             Field = field;
         }
 
-        private OrderedDictionary Generate()
+        private SortedDictionary<Position, SudokuElement> Generate()
         {
-            OrderedDictionary result = new OrderedDictionary();
+            SortedDictionary<Position, SudokuElement> result = new SortedDictionary<Position, SudokuElement>();
             for (var row = Data.MinValue; row <= Data.MaxValue; row++)
             {
                 for (var column = Data.MinValue; column <= Data.MaxValue; column++)
@@ -40,7 +42,7 @@ namespace Sudoku_engine.Sudoku
         public SudokuElement GetSudokuElement(int row, int column)
         {
             var position = new Position(row, column);
-            var sudokuElement = (SudokuElement)Field[position];
+            var sudokuElement = Field[position];
             return sudokuElement;
         }
 
@@ -60,81 +62,50 @@ namespace Sudoku_engine.Sudoku
 
         public bool RemoveCandidte(int row, int column, int value) => GetSudokuElement(row, column).RemoveCandidate(value);
 
-        public OrderedDictionary GetRow(int row)
+        public ImmutableSortedDictionary<Position, SudokuElement> GetRow(int row)
         {
-            var result = new OrderedDictionary();
-            foreach(DictionaryEntry entry in Field)
-            {
-                var pos = (Position)entry.Key;
-                if (pos.Row == row)
-                {
-                    result.Add(entry.Key, entry.Value);
-                }
-            }
+            var result = Field
+                .Where(k => k.Key.Row == row)
+                .ToImmutableSortedDictionary(k => k.Key, v => v.Value);
             return result;
         }
 
-        public OrderedDictionary GetColumn(int column)
+        public ImmutableSortedDictionary<Position, SudokuElement> GetColumn(int column)
         {
-            var result = new OrderedDictionary();
-            foreach (DictionaryEntry entry in Field)
-            {
-                var pos = (Position)entry.Key;
-                if (pos.Column == column)
-                {
-                    result.Add(entry.Key, entry.Value);
-                }
-            }
+            var result = Field
+               .Where(k => k.Key.Column == column)
+               .ToImmutableSortedDictionary(k => k.Key, v => v.Value);
             return result;
         }
 
-        public OrderedDictionary GetSection(int row, int column)
+        public ImmutableSortedDictionary<Position, SudokuElement> GetSection(int row, int column)
         {
-            OrderedDictionary result = new OrderedDictionary();
             var startRow = ((row - 1) / Data.Section) * Data.Section + 1;
             var startCol = ((column - 1) / Data.Section) * Data.Section + 1;
-
-            foreach(DictionaryEntry entry in Field)
-            {
-                var pos = (Position)entry.Key;
-                if (pos.Row >= startRow && pos.Row < (startRow + Data.Section)
-                    && pos.Column >= startCol && pos.Column < (startCol + Data.Section))
-                {
-                    result.Add(entry.Key, entry.Value);
-                }
-            }
+ 
+            var result = Field
+               .Where(k => k.Key.Row >= startRow && k.Key.Row < (startRow + Data.Section))
+               .Where(k => k.Key.Column >= startCol && k.Key.Column < (startCol + Data.Section))
+               .ToImmutableSortedDictionary(k => k.Key, v => v.Value);
             return result;
         }
 
-        public OrderedDictionary GetSudokuSection(int row, int column)
+        public ImmutableSortedDictionary<Position, SudokuElement> GetSudokuSection(int row, int column)
         {
-            var result = GetRow(row);
-
-            foreach (DictionaryEntry entry in GetColumn(column))
-            {
-                if (!result.Contains((Position)entry.Key))
-                {
-                    result.Add(entry.Key, entry.Value);
-                }
-            }
-
-            foreach (DictionaryEntry entry in GetSection(row, column))
-            {
-                if (!result.Contains((Position)entry.Key))
-                {
-                    result.Add(entry.Key, entry.Value);
-                }
-            }
+            var result = GetRow(row)
+                .Union(GetColumn(column))
+                .Union(GetSection(row, column))
+                .ToImmutableSortedDictionary(k => k.Key, v => v.Value);
             return result;
         }
 
         public SudokuField DeepCopy()
         {
-            var fieldCopy = new OrderedDictionary();
-            foreach(DictionaryEntry entry in Field)
+            var fieldCopy = new SortedDictionary<Position, SudokuElement>();
+            foreach(KeyValuePair<Position, SudokuElement> entry in Field)
             {
-                var positionOrg = (Position)entry.Key;
-                var sudokuElementOrg = (SudokuElement)entry.Value;
+                var positionOrg = entry.Key;
+                var sudokuElementOrg = entry.Value;
                
                 var positionCopy = new Position(positionOrg.Row, positionOrg.Column);
                 var sudokuElementCopy = new SudokuElement(sudokuElementOrg.Number, 
@@ -149,12 +120,12 @@ namespace Sudoku_engine.Sudoku
         public override string ToString()
         {
             var result = new StringBuilder();
-            for (var i = 0; i < Data.MaxValue; i++)
+            for (var i = 1; i <= Data.MaxValue; i++)
             {
-               result.Append("|");
-               for (var j = 0; j < Data.MaxValue; j++)
+                result.Append("|");
+                for (var j = 1; j <= Data.MaxValue; j++)
                 {
-                    var sudokuElement = (SudokuElement)Field[i * Data.MaxValue + j];
+                    var sudokuElement = Field[new Position(i, j)];
                     if (sudokuElement.Number != Data.Empty)
                         result.Append(sudokuElement.Number);
                     else
