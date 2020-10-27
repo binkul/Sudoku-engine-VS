@@ -58,6 +58,8 @@ namespace Sudoku_engine.Sudoku
 
         public bool IsOnlyOneCandidate(int row, int column) => GetSudokuElement(row, column).IsOnlyOneCandidate();
 
+        public bool IsFilled(int row, int column) => GetNumber(row, column) != Data.Empty;
+             
         public int GetFirstCandidate(int row, int column) => GetSudokuElement(row, column).GetFirstCandidate();
 
         public bool RemoveCandidte(int row, int column, int value) => GetSudokuElement(row, column).RemoveCandidate(value);
@@ -65,6 +67,7 @@ namespace Sudoku_engine.Sudoku
         public ImmutableSortedDictionary<Position, SudokuElement> GetRow(int row)
         {
             var result = Field
+                .Select(n => n)
                 .Where(k => k.Key.Row == row)
                 .ToImmutableSortedDictionary(k => k.Key, v => v.Value);
             return result;
@@ -73,8 +76,9 @@ namespace Sudoku_engine.Sudoku
         public ImmutableSortedDictionary<Position, SudokuElement> GetColumn(int column)
         {
             var result = Field
-               .Where(k => k.Key.Column == column)
-               .ToImmutableSortedDictionary(k => k.Key, v => v.Value);
+                .Select(n => n)
+                .Where(k => k.Key.Column == column)
+                .ToImmutableSortedDictionary(k => k.Key, v => v.Value);
             return result;
         }
 
@@ -84,9 +88,10 @@ namespace Sudoku_engine.Sudoku
             var startCol = ((column - 1) / Data.Section) * Data.Section + 1;
  
             var result = Field
-               .Where(k => k.Key.Row >= startRow && k.Key.Row < (startRow + Data.Section))
-               .Where(k => k.Key.Column >= startCol && k.Key.Column < (startCol + Data.Section))
-               .ToImmutableSortedDictionary(k => k.Key, v => v.Value);
+                .Select(n => n)
+                .Where(k => k.Key.Row >= startRow && k.Key.Row < (startRow + Data.Section))
+                .Where(k => k.Key.Column >= startCol && k.Key.Column < (startCol + Data.Section))
+                .ToImmutableSortedDictionary(k => k.Key, v => v.Value);
             return result;
         }
 
@@ -123,11 +128,11 @@ namespace Sudoku_engine.Sudoku
             for (var i = 1; i <= Data.MaxValue; i++)
             {
                 result.Append("|");
-                for (var j = 1; j <= Data.MaxValue; j++)
+                var row = GetRow(i);
+                foreach(SudokuElement element in row.Values)
                 {
-                    var sudokuElement = Field[new Position(i, j)];
-                    if (sudokuElement.Number != Data.Empty)
-                        result.Append(sudokuElement.Number);
+                    if (element.Number != Data.Empty)
+                        result.Append(element.Number);
                     else
                         result.Append(" ");
                     result.Append("|");

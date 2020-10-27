@@ -11,7 +11,7 @@ namespace Sudoku_engine.Sudoku
     {
         public int Number { get; set; } = Data.Empty;
         public List<int> Candidates { get; set; } = new List<int> {1, 2, 3, 4, 5, 6, 7, 8, 9};
-        public Color FontColor { get; set; } = Color.Black;
+        public Color FontColor { get; set; } = Data.NormalColor;
 
         public SudokuElement()
         { }
