@@ -59,7 +59,7 @@ namespace Sudoku_engine.Sudoku
         public bool IsOnlyOneCandidate(int row, int column) => GetSudokuElement(row, column).IsOnlyOneCandidate();
 
         public bool IsFilled(int row, int column) => GetNumber(row, column) != Data.Empty;
-             
+
         public int GetFirstCandidate(int row, int column) => GetSudokuElement(row, column).GetFirstCandidate();
 
         public bool RemoveCandidte(int row, int column, int value) => GetSudokuElement(row, column).RemoveCandidate(value);
@@ -86,13 +86,19 @@ namespace Sudoku_engine.Sudoku
         {
             var startRow = ((row - 1) / Data.Section) * Data.Section + 1;
             var startCol = ((column - 1) / Data.Section) * Data.Section + 1;
- 
+
             var result = Field
                 .Select(n => n)
                 .Where(k => k.Key.Row >= startRow && k.Key.Row < (startRow + Data.Section))
                 .Where(k => k.Key.Column >= startCol && k.Key.Column < (startCol + Data.Section))
                 .ToImmutableSortedDictionary(k => k.Key, v => v.Value);
             return result;
+        }
+
+        public ImmutableSortedDictionary<Position, SudokuElement> GetSection(int section)
+        {
+            int[] map = { 1, 4, 7 };
+            return GetSection(map[(section - 1) / Data.Section], map[(section - 1) % Data.Section]);
         }
 
         public ImmutableSortedDictionary<Position, SudokuElement> GetSudokuSection(int row, int column)
