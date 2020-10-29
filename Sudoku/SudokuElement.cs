@@ -25,6 +25,8 @@ namespace Sudoku_engine.Sudoku
 
         public bool RemoveCandidate(int number) => Candidates.Remove(number);
 
+        public bool ContainCandidate(int number) => Candidates.Contains(number);
+
         public int GetCandidate(int index)
         {
             if (index >= 0 && index < Candidates.Count())

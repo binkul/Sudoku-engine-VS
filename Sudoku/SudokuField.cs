@@ -67,7 +67,6 @@ namespace Sudoku_engine.Sudoku
         public ImmutableSortedDictionary<Position, SudokuElement> GetRow(int row)
         {
             var result = Field
-                .Select(n => n)
                 .Where(k => k.Key.Row == row)
                 .ToImmutableSortedDictionary(k => k.Key, v => v.Value);
             return result;
@@ -76,7 +75,6 @@ namespace Sudoku_engine.Sudoku
         public ImmutableSortedDictionary<Position, SudokuElement> GetColumn(int column)
         {
             var result = Field
-                .Select(n => n)
                 .Where(k => k.Key.Column == column)
                 .ToImmutableSortedDictionary(k => k.Key, v => v.Value);
             return result;
@@ -88,7 +86,6 @@ namespace Sudoku_engine.Sudoku
             var startCol = ((column - 1) / Data.Section) * Data.Section + 1;
 
             var result = Field
-                .Select(n => n)
                 .Where(k => k.Key.Row >= startRow && k.Key.Row < (startRow + Data.Section))
                 .Where(k => k.Key.Column >= startCol && k.Key.Column < (startCol + Data.Section))
                 .ToImmutableSortedDictionary(k => k.Key, v => v.Value);

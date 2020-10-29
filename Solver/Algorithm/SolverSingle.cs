@@ -13,7 +13,7 @@ namespace Sudoku_engine.Solver.Algorithm
         protected Result Process(SudokuField sudokuField, int row, int column)
         {
             SudokuElement sudokuElement = sudokuField.GetSudokuElement(row, column);
-            HashSet<int> existingNumbers = GetNumberFromSudokuSection(sudokuField, row, column);
+            HashSet<int> existingNumbers = GetNumbersFromSudokuSection(sudokuField, row, column);
 
             foreach (int number in existingNumbers)
             {
@@ -22,7 +22,7 @@ namespace Sudoku_engine.Solver.Algorithm
             return AddNumber(sudokuElement);
         }
 
-        public HashSet<int> GetNumberFromSudokuSection(SudokuField sudokuField, int row, int column)
+        public HashSet<int> GetNumbersFromSudokuSection(SudokuField sudokuField, int row, int column)
         {
             return sudokuField.GetSudokuSection(row, column)
                 .Select(n => n.Value)

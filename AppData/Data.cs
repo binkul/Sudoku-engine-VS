@@ -14,7 +14,7 @@ namespace Sudoku_engine.AppData
 
         public static Color SingleColor = Color.Red;
         public static Color NormalColor = Color.Black;
-        public static Color StandardColor = Color.Blue;
+        public static Color UniqueColor = Color.Blue;
         public static Color BackTrackColor = Color.Green;
 
     }
