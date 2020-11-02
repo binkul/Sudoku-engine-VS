@@ -10,32 +10,38 @@ namespace Sudoku_engine.Solver
 {
     public class MainSolver
     {
-        public SudokuField Sudoku { get; set; }
         private SolverUnique _solverUnique;
         private SolverBackTrack _solverBackTrack;
 
-        public MainSolver(SudokuField sudoku)
+        public MainSolver()
         {
-            Sudoku = sudoku;
             _solverUnique = new SolverUnique();
-            _solverBackTrack = new SolverBackTrack(this);
+            _solverBackTrack = new SolverBackTrack();
         }
 
-        public SudokuField Process()
+        public SudokuField Process(SudokuField sudoku)
         {
-            if (Validator.IsCollision(Sudoku))
+            CheckCollision(sudoku);
+
+            _ = _solverUnique.Process(sudoku);
+            if (_solverUnique.Process(sudoku) != Result.FullFilled)
+            {
+                SolverResult solverResult = _solverBackTrack.Process(sudoku);
+                if (solverResult.Result == Result.Error)
+                    throw new SudokuUnsolvableException("There is no solution for this Sudoku.");
+                else
+                    sudoku = solverResult.Sudoku;
+            }
+
+            return sudoku;
+        }
+
+        private static void CheckCollision(SudokuField sudoku)
+        {
+            if (Validator.IsCollision(sudoku))
             {
                 throw new SudokuCollisionNumberException("There are the same numbers in row/column/section");
             }
-
-            _ = _solverUnique.Process(Sudoku);
-            if (_solverUnique.Process(Sudoku) != Result.FullFilled)
-            {
-                if (_solverBackTrack.Process(Sudoku) == Result.Error)
-                    throw new SudokuUnsolvableException("There is no solution for this Sudoku.");
-            }
-
-            return Sudoku;
         }
 
         public SolverUnique GetSolverUnique() => _solverUnique;

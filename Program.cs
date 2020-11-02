@@ -10,8 +10,8 @@ namespace Sudoku_engine
         static void Main(string[] args)
         {
             SudokuField sudoku = new SudokuField();
-            MainSolver solver = new MainSolver(sudoku);
-            sudoku = solver.Process();
+            MainSolver solver = new MainSolver();
+            sudoku = solver.Process(sudoku);
             Console.WriteLine(sudoku);
         }
     }

@@ -7,18 +7,12 @@ using System.Text;
 
 namespace Sudoku_engine.Solver.Algorithm
 {
-    public class SolverBackTrack
+    public class SolverBackTrack : SolverUnique
     {
-        private MainSolver _solver;
         private SudokuField _sudokuFieldCopy;
         private SudokuElement _sudokuElement;
 
-        public SolverBackTrack(MainSolver solver)
-        {
-            _solver = solver;
-        }
-
-        public Result Process(SudokuField sudokuField)
+        public new SolverResult Process(SudokuField sudokuField)
         {
             _sudokuFieldCopy = sudokuField;
             Stack<StackElement> stackElements = new Stack<StackElement>();
@@ -31,15 +25,14 @@ namespace Sudoku_engine.Solver.Algorithm
                 switch (result)
                 {
                     case Result.FullFilled:
-                        _solver.Sudoku = _sudokuFieldCopy;
-                        return Result.FullFilled;
+                        return new SolverResult(Result.FullFilled, _sudokuFieldCopy);
 
                     case Result.Error:
                         bool loop = true;
                         do
                         {
                             if (stackElements.Count == 0)
-                                return Result.Error;
+                                return new SolverResult(Result.Error);
 
                             stackElement = stackElements.Pop();
                             index = stackElement.Index + 1;
@@ -48,7 +41,7 @@ namespace Sudoku_engine.Solver.Algorithm
                                 _sudokuFieldCopy = stackElement.SudokuField;
                                 _sudokuElement = stackElement.SudokuElement;
                                 if (PutOnStack(stackElements, index) == Result.Error)
-                                    return Result.Error;
+                                    return new SolverResult(Result.Error);
                                 loop = false;
                             }
                             else
@@ -60,12 +53,12 @@ namespace Sudoku_engine.Solver.Algorithm
                         break;
 
                     default:
-                        _sudokuElement = FindFirsEmpty(_sudokuFieldCopy);
+                        _sudokuElement = FindFirstEmpty(_sudokuFieldCopy);
                         if (PutOnStack(stackElements, 0) == Result.Error)
-                            return Result.Error;
+                            return new SolverResult(Result.Error);
                         break;
                 }
-                result = _solver.GetSolverUnique().Process(_sudokuFieldCopy);
+                result = base.Process(_sudokuFieldCopy);
             }
         }
 
@@ -75,7 +68,7 @@ namespace Sudoku_engine.Solver.Algorithm
             stack.Push(stackElement);
 
             _sudokuFieldCopy = _sudokuFieldCopy.DeepCopy();
-            _sudokuElement = FindFirsEmpty(_sudokuFieldCopy);
+            _sudokuElement = FindFirstEmpty(_sudokuFieldCopy);
             if (_sudokuElement == null)
                 return Result.Error;
 
@@ -86,7 +79,7 @@ namespace Sudoku_engine.Solver.Algorithm
             return Result.None;
         }
 
-        private SudokuElement FindFirsEmpty(SudokuField sudokuField)
+        private SudokuElement FindFirstEmpty(SudokuField sudokuField)
         {
             return sudokuField.Field
                 .Select(n => n.Value)
